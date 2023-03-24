@@ -5,6 +5,8 @@ function App() {
   const [outputScreen, setOutputScreen] = useState('0')
   const [formulaScreen, setFormulaScreen] = useState('')
   const [lastIsOperation, setLastIsOperation] = useState(false)
+  const [isEqualsTriggered, setIsEqualsTriggered] = useState(false)
+  const [history, setHistory] = useState('')
 
   const handleClear = () => {
     setLastIsOperation(false)
@@ -16,7 +18,12 @@ function App() {
     if(formulaScreen != '') setFormulaScreen('')
     setLastIsOperation(false)
     const number = event.target.textContent;
-    (outputScreen == '0')?setOutputScreen(number):setOutputScreen(outputScreen + number)
+    if(isEqualsTriggered){
+      setIsEqualsTriggered(false)
+      setOutputScreen(number)
+    }else{
+      (outputScreen == '0')?setOutputScreen(number):setOutputScreen(outputScreen + number)
+    }
   }
 
   const handleOperator = event => {
@@ -26,21 +33,29 @@ function App() {
     const laseElement = array[array.length - 1]
     if(laseElement == '.'){
       setOutputScreen(outputScreen.substring(0, outputScreen.length-1) + ' ' + operator + ' ' )
-    }else if(isNaN(laseElement) && operator != '-'){
+    }else if(isNaN(laseElement) && operator == '-'){
+      setOutputScreen(outputScreen + ' ' + operator + ' ' )
+    }else if(isNaN(laseElement) && isNaN(array[array.length - 2])){
+      setOutputScreen(outputScreen.substring(0, outputScreen.length-6) + ' ' + operator + ' ' )
+    }else if(isNaN(laseElement) && laseElement != '-'){
       setOutputScreen(outputScreen.substring(0, outputScreen.length-3) + ' ' + operator + ' ' )
     }else{
       setOutputScreen(outputScreen + ' ' + operator + ' ' )
     }
     setLastIsOperation(true)
+    setIsEqualsTriggered(false)
   }
 
   const handleEquals = () => {
     if(!lastIsOperation){
       setFormulaScreen(outputScreen)
+      const temp = outputScreen
       const result = eval(outputScreen)
       setOutputScreen((isNaN(result))?'0':result.toString())
       setLastIsOperation(false)
+      setHistory(history + temp + ' = ' + result + ' | \n')
     }
+    setIsEqualsTriggered(true)
   }
 const handleDecimal = () => {
   const array = outputScreen.split(' ')
@@ -52,6 +67,7 @@ const handleDecimal = () => {
 }
 
   return (
+    <>
     <div className="App">
       <div className='display'>
         <div className="formulaScreen" >{formulaScreen}</div>
@@ -79,7 +95,10 @@ const handleDecimal = () => {
       <div id="decimal" className='button period-button' onClick={handleDecimal}>.</div>
       <div id="zero" className='button button0 num-button' onClick={handleNumber}>0</div>
       <div id="equals" className='button eval-button' onClick={handleEquals}>=</div>
+    
     </div>
+    <div className="preview">{history}</div>
+    </>
   );
 }
 
